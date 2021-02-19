@@ -9,29 +9,30 @@ size = 2
 target = []  # target array, aka finished puzzle
 
 target_found = None
-path = [] 
+path = []  # path from input to target
 
 node_count = 1
 current_node = 0
 
-nodes_to_check = []
-scanned_nodes = []
+nodes_to_check = []  # nodes left to be checked
+scanned_nodes = []  # nodes already seen, avoid duplicates
 
 
+# Class to hold info about a node
 class Node:
-    node_number = 0
-    parent_node = 0
-    node = None
+    node_number = 0  # ID of node
+    parent_node = 0  # ID of parent node
+    board = None     # matrix
 
-    def __init__(self, node):
+    def __init__(self, board):
         global node_count
         self.node_number = node_count
         node_count = node_count + 1
         self.parent_node = current_node
-        self.node = node
+        self.board = board
 
 
-def getInit():
+def get_init():  # gets input from user
     s_node = input("Enter start node: ")
     node = s_node.split()
     for x,i in enumerate(node):
@@ -48,40 +49,45 @@ def getInit():
 def print_matrix(state):
     for row in state:
         for num in row:
-            print(num,'|', end = '')
+            print(num,'|', end='')
         print('\n--------')
 
 
-def find_hole(state):
+def find_hole(state):  # find the hole ('0')
     for x,i in enumerate(state):
         for y,j in enumerate(i):
             if j == 0:
                 return [y,x]
 
 
-def generate_new(state):
+def generate_new(state):  # generates all new possible board from the given board state
     hole = find_hole(state)
     new_states = []
+
     if hole[0] != size:  # move left
         new = copy.deepcopy(state)
         new[hole[1]][hole[0]] = state[hole[1]][hole[0] + 1]
         new[hole[1]][hole[0] + 1] = 0
         new_states.append(new)
+
     if hole[1] != 0:  # move up
         new = copy.deepcopy(state)
         new[hole[1]][hole[0]] = state[hole[1] - 1][hole[0]]
         new[hole[1] - 1][hole[0]] = 0
         new_states.append(new)
+
     if hole[0] != 0:  # move right
         new = copy.deepcopy(state)
         new[hole[1]][hole[0]] = state[hole[1]][hole[0] - 1]
         new[hole[1]][hole[0] - 1] = 0
         new_states.append(new)
-    if hole[1] != size:
+
+    if hole[1] != size:  # mode down
         new = copy.deepcopy(state)
         new[hole[1]][hole[0]] = state[hole[1] + 1][hole[0]]
         new[hole[1] + 1][hole[0]] = 0
         new_states.append(new)
+
     return new_states
 
 
@@ -93,32 +99,32 @@ def node_to_string(node):
     return ret[:-1]  # return all but last space
 
 
-def add_node(new_node):
-    new_node = Node(new_node)
+def add_node(board):  # turns board into a node, adds it to lists
+    new_node = Node(board)
     nodes_to_check.append(new_node)
     scanned_nodes.append(new_node)
 
 
-def write_files():
+def write_files():  # writes all data to the three given files
     with open(nodes_doc, 'a') as f:
         for node in scanned_nodes:
-            f.write(node_to_string(node.node) + '\n')
+            f.write(node_to_string(node.board) + '\n')
     with open(info_doc, 'a') as f:
         for node in scanned_nodes:
             f.write(str(node.node_number) + ' ' + str(node.parent_node) + ' ' + str(0) + '\n')
     with open(path_doc, 'w') as f:
         for node in path:
-            f.write(node_to_string(node.node)+ '\n')
+            f.write(node_to_string(node.board) + '\n')
 
 
-def seen_before(pot):
+def seen_before(pot):  # checks if a given board state has been seen before
     for node in scanned_nodes:
-        if node.node == pot:
+        if node.board == pot:
             return True
     return False
 
 
-def validate_states(new_nodes):
+def validate_states(new_nodes):  # checks if new nodes(boards) are seen before or if they are the target board state
     global target_found
     for new_node in new_nodes:
         if not seen_before(new_node):  # new node
@@ -132,7 +138,7 @@ def validate_states(new_nodes):
     return False
 
 
-def make_target():
+def make_target():  # makes a representation for the target board
     x = 0
     for i in range(size+1):
         row = []
@@ -143,7 +149,7 @@ def make_target():
     target[size][size] = 0
 
 
-def trace_back():
+def trace_back():  # look back through scanned_nodes to find path taken to final board state
     global path
     path.append(scanned_nodes[0])
     prop = target_found
@@ -154,17 +160,18 @@ def trace_back():
     print('Len: ', len(path))
 
 
-def clear_files():
+def clear_files():  # delete all data in files
     open(path_doc, 'w').close()
     open(nodes_doc, 'w').close()
     open(info_doc, 'w').close()
 
 
 if __name__ == '__main__':
+    # initial set up
     clear_files()
     make_target()
     print_matrix(target)
-    initial = getInit()
+    initial = get_init()
     add_node(initial)
 
     print_matrix(initial)
@@ -180,7 +187,7 @@ if __name__ == '__main__':
         if not found:
             next_node = nodes_to_check.pop(0)
             current_node = next_node.node_number
-            new_states = generate_new(next_node.node)
+            new_states = generate_new(next_node.board)
     trace_back()
     print(itt)
     write_files()
