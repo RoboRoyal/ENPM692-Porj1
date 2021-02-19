@@ -1,15 +1,15 @@
 
-import copy
+import copy  # used for deep copy
 
 path_doc = 'my_nodePath.txt'
 nodes_doc = 'my_Nodes.txt'
 info_doc = 'my_NodesInfo.txt'
 
 size = 2
-target = []
+target = []  # target array, aka finished puzzle
 
 target_found = None
-path = []
+path = [] 
 
 node_count = 1
 current_node = 0
@@ -17,16 +17,19 @@ current_node = 0
 nodes_to_check = []
 scanned_nodes = []
 
-class node:
+
+class Node:
     node_number = 0
     parent_node = 0
     node = None
+
     def __init__(self, node):
         global node_count
         self.node_number = node_count
         node_count = node_count + 1
         self.parent_node = current_node
         self.node = node
+
 
 def getInit():
     s_node = input("Enter start node: ")
@@ -41,11 +44,13 @@ def getInit():
         node = [node[0:4], node[4:8], node[8:12], node[12:16]]
     return node
 
+
 def print_matrix(state):
     for row in state:
         for num in row:
             print(num,'|', end = '')
         print('\n--------')
+
 
 def find_hole(state):
     for x,i in enumerate(state):
@@ -53,36 +58,32 @@ def find_hole(state):
             if j == 0:
                 return [y,x]
 
+
 def generate_new(state):
     hole = find_hole(state)
-    #print(hole)
     new_states = []
-    if hole[0] != size: #move left
-        #print('left')
+    if hole[0] != size:  # move left
         new = copy.deepcopy(state)
         new[hole[1]][hole[0]] = state[hole[1]][hole[0] + 1]
         new[hole[1]][hole[0] + 1] = 0
         new_states.append(new)
-    if hole[1] != 0: #move up
-        #print('up')
+    if hole[1] != 0:  # move up
         new = copy.deepcopy(state)
         new[hole[1]][hole[0]] = state[hole[1] - 1][hole[0]]
         new[hole[1] - 1][hole[0]] = 0
         new_states.append(new)
-    if hole[0] != 0:#move right
-        #print('right')
+    if hole[0] != 0:  # move right
         new = copy.deepcopy(state)
         new[hole[1]][hole[0]] = state[hole[1]][hole[0] - 1]
         new[hole[1]][hole[0] - 1] = 0
         new_states.append(new)
     if hole[1] != size:
-        #print('down')
         new = copy.deepcopy(state)
         new[hole[1]][hole[0]] = state[hole[1] + 1][hole[0]]
         new[hole[1] + 1][hole[0]] = 0
         new_states.append(new)
-    #print(new_states)
     return new_states
+
 
 def node_to_string(node):
     ret = ''
@@ -91,10 +92,12 @@ def node_to_string(node):
             ret = ret + str(num) + ' '
     return ret[:-1]  # return all but last space
 
+
 def add_node(new_node):
-    new_node = node(new_node)
+    new_node = Node(new_node)
     nodes_to_check.append(new_node)
     scanned_nodes.append(new_node)
+
 
 def write_files():
     with open(nodes_doc, 'a') as f:
@@ -107,25 +110,27 @@ def write_files():
         for node in path:
             f.write(node_to_string(node.node)+ '\n')
 
+
 def seen_before(pot):
     for node in scanned_nodes:
         if node.node == pot:
             return True
     return False
 
+
 def validate_states(new_nodes):
     global target_found
     for new_node in new_nodes:
-        if not seen_before(new_node): # new node
+        if not seen_before(new_node):  # new node
             add_node(new_node)
         else:
-            #print('got that one')
             pass
         if new_node == target:
             print('Found!')
-            target_found = node(new_node)
+            target_found = Node(new_node)
             return True
     return False
+
 
 def make_target():
     x = 0
@@ -137,6 +142,7 @@ def make_target():
         target.append(row)
     target[size][size] = 0
 
+
 def trace_back():
     global path
     path.append(scanned_nodes[0])
@@ -145,13 +151,14 @@ def trace_back():
         path.insert(1, prop)
         prop = scanned_nodes[prop.parent_node - 1]
         print(prop.node_number)
-    # path.append(node(target))
     print('Len: ', len(path))
+
 
 def clear_files():
     open(path_doc, 'w').close()
     open(nodes_doc, 'w').close()
     open(info_doc, 'w').close()
+
 
 if __name__ == '__main__':
     clear_files()
@@ -171,10 +178,9 @@ if __name__ == '__main__':
         itt = itt + 1
         found = validate_states(new_states)
         if not found:
-            next = nodes_to_check.pop(0)
-            current_node = next.node_number
-            new_states = generate_new(next.node)
-    #recunstruct path
+            next_node = nodes_to_check.pop(0)
+            current_node = next_node.node_number
+            new_states = generate_new(next_node.node)
     trace_back()
     print(itt)
     write_files()
