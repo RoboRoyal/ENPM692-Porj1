@@ -4,34 +4,48 @@ import copy
 path_doc = 'my_nodePath.txt'
 nodes_doc = 'my_Nodes.txt'
 info_doc = 'my_NodesInfo.txt'
+
+size = 2
+target = []
+
+target_found = None
+path = []
+
 node_count = 1
 current_node = 0
-target = []
-size = 2
-nodes_to_scan = []
+
+nodes_to_check = []
 scanned_nodes = []
+
+class node:
+    node_number = 0
+    parent_node = 0
+    node = None
+    def __init__(self, node):
+        global node_count
+        self.node_number = node_count
+        node_count = node_count + 1
+        self.parent_node = current_node
+        self.node = node
 
 def getInit():
     s_node = input("Enter start node: ")
     node = s_node.split()
     for x,i in enumerate(node):
         node[x] = int(i)
-    if len(node) != 9:
+    if len(node) != pow(size+1, 2):
         raise Exception("Invalid node")
-    node = [node[0:3], node[3:6], node[6:9]]
+    if size == 2:
+        node = [node[0:3], node[3:6], node[6:9]]
+    if size == 3:
+        node = [node[0:4], node[4:8], node[8:12], node[12:16]]
     return node
 
-def print_matrix(state):  # from plot_path.py
-    counter = 0
-    for row in range(0, len(state), size+1):
-        if counter == 0 :
-            print("-------------")
-        for element in range(counter, len(state), size+1):
-            if element <= counter:
-                print("|", end=" ")
-            print(int(state[element]), "|", end=" ")
-        counter = counter +1
-        print("\n-------------")
+def print_matrix(state):
+    for row in state:
+        for num in row:
+            print(num,'|', end = '')
+        print('\n--------')
 
 def find_hole(state):
     for x,i in enumerate(state):
@@ -70,12 +84,6 @@ def generate_new(state):
     #print(new_states)
     return new_states
 
-def print_state(state):
-    for row, i in enumerate(state):
-        print(str(i[0])+'|'+str(i[1])+'|'+str(i[2]))
-        if row != 2:
-            print('-----')
-
 def node_to_string(node):
     ret = ''
     for row in node:
@@ -83,30 +91,39 @@ def node_to_string(node):
             ret = ret + str(num) + ' '
     return ret[:-1]  # return all but last space
 
-def add_node(node):
-    global node_count
-    #write to Nodes
+def add_node(new_node):
+    new_node = node(new_node)
+    nodes_to_check.append(new_node)
+    scanned_nodes.append(new_node)
+
+def write_files():
     with open(nodes_doc, 'a') as f:
-        f.write(node_to_string(node) + '\n')
-    #write to NodesInfo
+        for node in scanned_nodes:
+            f.write(node_to_string(node.node) + '\n')
     with open(info_doc, 'a') as f:
-        f.write(str(node_count) + ' ' + str(current_node) + ' ' + str(0) + '\n')
-    nodes_to_scan.append(node)
-    node_count = node_count + 1
+        for node in scanned_nodes:
+            f.write(str(node.node_number) + ' ' + str(node.parent_node) + ' ' + str(0) + '\n')
+    with open(path_doc, 'w') as f:
+        for node in path:
+            f.write(node_to_string(node.node)+ '\n')
+
+def seen_before(pot):
+    for node in scanned_nodes:
+        if node.node == pot:
+            return True
+    return False
 
 def validate_states(new_nodes):
-    nodes = []
-    with open(nodes_doc) as f:
-        lines = f.read().splitlines()
-    #print(lines)
+    global target_found
     for new_node in new_nodes:
-        if node_to_string(new_node) not in lines: # new node
+        if not seen_before(new_node): # new node
             add_node(new_node)
         else:
             #print('got that one')
             pass
         if new_node == target:
             print('Found!')
+            target_found = node(new_node)
             return True
     return False
 
@@ -120,26 +137,50 @@ def make_target():
         target.append(row)
     target[size][size] = 0
 
-if __name__ == '__main__':
-    make_target()
-    print_state(target)
-    initial = getInit()
+def trace_back():
+    global path
+    path.append(scanned_nodes[0])
+    prop = target_found
+    while prop.node_number != 1:
+        path.insert(1, prop)
+        prop = scanned_nodes[prop.parent_node - 1]
+        print(prop.node_number)
+    # path.append(node(target))
+    print('Len: ', len(path))
 
-    print_state(initial)
+def clear_files():
+    open(path_doc, 'w').close()
+    open(nodes_doc, 'w').close()
+    open(info_doc, 'w').close()
+
+if __name__ == '__main__':
+    clear_files()
+    make_target()
+    print_matrix(target)
+    initial = getInit()
+    add_node(initial)
+
+    print_matrix(initial)
     found = False
     new_states = generate_new(initial)
-    print_state(new_states[0])
+    print_matrix(new_states[0])
     itt = 0
+    current_node = 1
     while not found and itt < 20000:
         print(itt)
         itt = itt + 1
         found = validate_states(new_states)
         if not found:
-            #current_node = parent_node.pop()
-            new_states = generate_new(nodes_to_scan.pop(0))
+            next = nodes_to_check.pop(0)
+            current_node = next.node_number
+            new_states = generate_new(next.node)
     #recunstruct path
-
+    trace_back()
     print(itt)
+    write_files()
 
 #  1 2 3 0 4 5 6 7 8
+# 1 2 3 4 5 6 7 8 9 10 11 0 13 14 15 12
+# 1 2 3 4 5 6 0 7 8
 
+# 1 2 3 4 5 6 7 8 9 10 11 12 0 13 14 15
