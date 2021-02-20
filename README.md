@@ -34,7 +34,7 @@ Number of nodes searched:  16
 Length of path:  4
 ```
 
-The first fiel it writes to is 'Nodes.txt'. 
+The first file it writes to is 'Nodes.txt'. 
 It writes ever node searched by the algorithm, one per line, in the order they were encountered.
 Theya re writin in matrix order, with all commas and brackets removed.
 
