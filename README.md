@@ -45,3 +45,6 @@ The last file it writes to is 'nodePath.txt'.
 This writes out each board configuration in the order to get to the end state.
 Each node is writen out as in 'Nodes.txt'
 
+This program imports the copy library to use the function 'deepcopy' to make deep copies of matrixs.
+
+This project can be found on GitHub at: https://github.com/RoboRoyal/ENPM692-Porj1
