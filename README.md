@@ -5,6 +5,7 @@ Project 1 for ENPM692, Spring 2021
 This program solves a 4x4 sliding puzzle, also know as a 15-puzzle, using a brute-force, breath first search.
 The program then writes out infor about the nodes, as well as the path, to text files.
 To solve a puzzle, run the program. This can be doen from an IDE or from the command line.
+In either case it should be noted this is only tested for python3.
 The program will then prompt you for the puzzle. Enter the puzzle in matrix notation.
 The hole, or the empty space, is notated by a '0'.
 
