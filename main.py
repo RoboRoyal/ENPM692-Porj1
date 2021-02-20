@@ -1,9 +1,9 @@
 
 import copy  # used for deep copy
 
-path_doc = 'my_nodePath.txt'
-nodes_doc = 'my_Nodes.txt'
-info_doc = 'my_NodesInfo.txt'
+path_doc = 'nodePath.txt'
+nodes_doc = 'Nodes.txt'
+info_doc = 'NodesInfo.txt'
 
 size = 3
 target = []  # target array, aka finished puzzle
@@ -37,13 +37,15 @@ def get_init():  # gets input from user
     node = s_node.split()
     for x,i in enumerate(node):
         node[x] = int(i)
-    if len(node) != pow(size+1, 2):
+    if len(node) != pow(size+1, 2):  # sanity check
         raise Exception("Invalid node")
+    
+    # form into matrix
     if size == 2:
-        node = [node[0:3], node[3:6], node[6:9]]
+        board = [node[0:3], node[3:6], node[6:9]]
     if size == 3:
-        node = [node[0:4], node[4:8], node[8:12], node[12:16]]
-    return node
+        board = [node[0:4], node[4:8], node[8:12], node[12:16]]
+    return board
 
 
 def alt_get_init():  # gets input from user using matrix notation
@@ -170,8 +172,6 @@ def trace_back():  # look back through scanned_nodes to find path taken to final
     while prop.node_number != 1:
         path.insert(1, prop)
         prop = scanned_nodes[prop.parent_node - 1]
-        print(prop.node_number)
-    print('Len: ', len(path))
 
 
 def clear_files():  # delete all data in files
@@ -184,17 +184,15 @@ if __name__ == '__main__':
     # initial set up
     clear_files()
     make_target()
-    print_matrix(target)
     initial = alt_get_init()  # get_init()
     add_node(initial)
 
-    print_matrix(initial)
     found = False
     new_states = generate_new(initial)
     itt = 0
     current_node = 1
     while not found and itt < 20000000:
-        if itt % 100 == 0:
+        if itt % 100 == 0 and itt != 0:
             print(itt,  " ", node_count)
         itt = itt + 1
         found = validate_states(new_states)
@@ -204,14 +202,8 @@ if __name__ == '__main__':
             new_states = generate_new(next_node.board)
     if found:
         trace_back()
-        print(itt)
+        print("Number of nodes searched: ", itt)
+        print("Length of path: ", len(path))
         write_files()
     else:
-        print('Not Found')
-
-#  1 2 3 0 4 5 6 7 8
-# 1 2 3 4 5 6 7 8 9 10 11 0 13 14 15 12
-# 1 2 3 4 5 6 0 7 8
-
-# 1 2 3 4 5 6 7 8 9 10 11 12 0 13 14 15
-# 1, 2, 3, 4, 5, 6, 0, 8 9, 10, 7, 12] , [13, 14, 11, 15]]
+        print('Solution not found')
