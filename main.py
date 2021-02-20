@@ -1,5 +1,3 @@
-# Githib repository
-# https://github.com/RoboRoyal/ENPM692-Porj1
 
 import copy  # used for deep copy
 
@@ -41,7 +39,7 @@ def get_init():  # gets input from user
         node[x] = int(i)
     if len(node) != pow(size+1, 2):  # sanity check
         raise Exception("Invalid node")
-    
+
     # form into matrix
     if size == 2:
         board = [node[0:3], node[3:6], node[6:9]]
@@ -116,6 +114,15 @@ def node_to_string(node):
             ret = ret + str(num) + ' '
     return ret[:-1]  # return all but last space
 
+def node_to_string_col(node):
+    ret = ''
+    itter = 0
+    while itter <= size:
+        for i in node:
+            ret = ret + str(i[itter]) + ' '
+        itter = itter + 1
+    return ret[:-1]
+
 
 def add_node(board):  # turns board into a node, adds it to lists
     new_node = Node(board)
@@ -126,13 +133,13 @@ def add_node(board):  # turns board into a node, adds it to lists
 def write_files():  # writes all data to the three given files
     with open(nodes_doc, 'a') as f:
         for node in scanned_nodes:
-            f.write(node_to_string(node.board) + '\n')
+            f.write(node_to_string_col(node.board) + '\n')
     with open(info_doc, 'a') as f:
         for node in scanned_nodes:
             f.write(str(node.node_number) + ' ' + str(node.parent_node) + ' ' + str(0) + '\n')
     with open(path_doc, 'w') as f:
         for node in path:
-            f.write(node_to_string(node.board) + '\n')
+            f.write(node_to_string_col(node.board) + '\n')
 
 
 def seen_before(pot):  # checks if a given board state has been seen before
@@ -209,3 +216,4 @@ if __name__ == '__main__':
         write_files()
     else:
         print('Solution not found')
+
