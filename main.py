@@ -5,7 +5,7 @@ path_doc = 'my_nodePath.txt'
 nodes_doc = 'my_Nodes.txt'
 info_doc = 'my_NodesInfo.txt'
 
-size = 2
+size = 3
 target = []  # target array, aka finished puzzle
 
 target_found = None
@@ -45,6 +45,20 @@ def get_init():  # gets input from user
         node = [node[0:4], node[4:8], node[8:12], node[12:16]]
     return node
 
+
+def alt_get_init():  # gets input from user using matrix notation
+    s_node = input("Enter start node: ")
+    s_node = s_node.replace('[', '').replace(']', '').strip()
+    node = s_node.split(',')
+    for x, i in enumerate(node):
+        node[x] = int(i)
+    if len(node) != pow(size + 1, 2):
+        raise Exception("Invalid node")
+    if size == 2:
+        node = [node[0:3], node[3:6], node[6:9]]
+    if size == 3:
+        node = [node[0:4], node[4:8], node[8:12], node[12:16]]
+    return node
 
 def print_matrix(state):
     for row in state:
@@ -171,29 +185,33 @@ if __name__ == '__main__':
     clear_files()
     make_target()
     print_matrix(target)
-    initial = get_init()
+    initial = alt_get_init()  # get_init()
     add_node(initial)
 
     print_matrix(initial)
     found = False
     new_states = generate_new(initial)
-    print_matrix(new_states[0])
     itt = 0
     current_node = 1
-    while not found and itt < 20000:
-        print(itt)
+    while not found and itt < 20000000:
+        if itt % 100 == 0:
+            print(itt,  " ", node_count)
         itt = itt + 1
         found = validate_states(new_states)
         if not found:
             next_node = nodes_to_check.pop(0)
             current_node = next_node.node_number
             new_states = generate_new(next_node.board)
-    trace_back()
-    print(itt)
-    write_files()
+    if found:
+        trace_back()
+        print(itt)
+        write_files()
+    else:
+        print('Not Found')
 
 #  1 2 3 0 4 5 6 7 8
 # 1 2 3 4 5 6 7 8 9 10 11 0 13 14 15 12
 # 1 2 3 4 5 6 0 7 8
 
 # 1 2 3 4 5 6 7 8 9 10 11 12 0 13 14 15
+# 1, 2, 3, 4, 5, 6, 0, 8 9, 10, 7, 12] , [13, 14, 11, 15]]
